@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events    Event[]
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  priority    Priority    @default(medium)
+  status      EventStatus @default(pending)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id])
+
+  reminders   Reminder[]
+  notes       Note[]
+}
+
+model Reminder {
+  id            String   @id @default(uuid())
+  eventId       String
+  minutesBefore Int
+  sent          Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  eventId   String
+  content   String
+  createdAt DateTime @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+}
+
+enum Priority {
+  high
+  medium
+  low
+}
+
+enum EventStatus {
+  pending
+  completed
+  cancelled
+}
